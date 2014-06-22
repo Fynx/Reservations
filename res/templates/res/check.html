@@ -1,0 +1,18 @@
+{% extends 'res/base.html' %}
+
+{% block body %}
+
+<div class="well" style="width: 500px">
+    Room: <h3>{{ free.room.name }}</h3><br />
+    Date: <div><b>{{ free.date }}</b></div><br /><br />
+    Time: <div><b>{{ starthour }} - {{ endhour }}</b></div><br />
+</div>
+<form action="/res/{{ free.id }}/confirmed/" method="POST">
+{% csrf_token %}
+    <button type="submit" class="btn btn-default">Confirm</button>
+
+    <input type="hidden" name="starthour" value="{{ starthour }}" />
+    <input type="hidden" name="endhour" value="{{ endhour }}" />
+</form>
+
+{% endblock %}

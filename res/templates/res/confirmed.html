@@ -1,0 +1,13 @@
+{% extends 'res/base.html' %}
+
+{% block body %}
+
+{% if not errors %}
+    Reservation confirmed.
+{% else %}
+    Reservation failed.
+{% endif %}
+
+<a href='/'>Return to main page</a>
+
+{% endblock %}

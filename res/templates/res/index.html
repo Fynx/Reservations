@@ -1,0 +1,114 @@
+{% extends "res/base.html" %}
+
+{% block body %}
+
+<form>
+    <h4>Filter</h4>
+    <ul>
+        <input type="text" name="filter_name" id="filter_name" class="form-control" placeholder="Room name / description"
+            {% if filter_name %} value="{{ filter_name }}" {% endif %}>
+        <br />
+
+        Capacity from &nbsp;
+        <input type="number" name="filter_capacity_lower" id="filter_capacity_lower" class="form-control" style="width: 60px"
+            {% if filter_capacity_lower != "" %} value="{{ filter_capacity_lower }}" {% endif %}>
+
+        &nbsp; to &nbsp;
+        <input type="number" name="filter_capacity_upper" id="filter_capacity_upper" class="form-control" style="width: 60px"
+            {% if filter_capacity_upper != "" %} value="{{ filter_capacity_upper }}" {% endif %}>
+        <br />
+
+        with &nbsp;
+        <input type="text" name="attribute" id="attribute" class="form-control" placeholder="Attribute"
+            {% if attribute %} value="{{ attribute }}" {% endif %}>
+
+        <input type="hidden" name="sort_order" value={{ sort_order }}>
+        <input type="hidden" name="page_number" value={{ page_number }}>
+        <button type="submit" class="btn btn-default">Search</button>
+    </ul>
+</form>
+
+{% if room_list %}
+
+<style type="text/css">
+
+body .modal {
+    width: 700px;
+    margin-left: -400px;
+}
+
+</style>
+
+    <h3>Select room</h3><br />
+    <div class="panel panel-default" style="width: 500px">
+        <table class="table">
+        <tr>
+        <form>
+            <input type="hidden" name="filter_name" value={{ filter_name }}>
+            <input type="hidden" name="filter_capacity_lower" value={{ filter_capacity_lower }}>
+            <input type="hidden" name="filter_capacity_upper" value={{ filter_capacity_upper }}>
+            <input type="hidden" name="page_number" value={{ page_number }}>
+            <input type="hidden" name="attribute" value={{ attribute }}>
+            <th><button type="submit" class="btn btn-default" name="sort_order" id="sort_order" value="id">#</th>
+            <th><button type="submit" class="btn btn-default" name="sort_order" id="sort_order" value="name">Name</th>
+            <th><button type="submit" class="btn btn-default" name="sort_order" id="sort_order" value="capacity">Capacity</th>
+        </form>
+        </tr>
+
+    {% for room in room_list %}
+        <tr>
+        <td>{{ forloop.counter|add:first_entry }}</td>
+        <td>
+        {% if room.free_set.count > 0 %}
+            <a data-target="#date_modal" href="/res/{{ room.id }}/date/" data-toggle="modal">
+        {% endif %}
+                {{ room.name }}
+        {% if room.free_set.count > 0 %}
+            </a>
+        {% endif %}
+        </td>
+        <td>{{ room.capacity }}</td>
+        </tr>
+    {% endfor %}
+        </table>
+    </div>
+
+    {% if mult_pages %}
+        <div class="btn-group">
+            <form action="" method="GET">
+                <input type="hidden" name="filter_name" value={{ filter_name }}>
+                <input type="hidden" name="filter_capacity_lower" value={{ filter_capacity_lower }}>
+                <input type="hidden" name="filter_capacity_upper" value={{ filter_capacity_upper }}>
+                <input type="hidden" name="sort_order" value={{ sort_order }}>
+                {% for x in pages %}
+                    <button class="btn btn-default" type="submit" name="page_number" value={{ forloop.counter }}>
+                        {{ forloop.counter }}
+                    </button>
+                {% endfor %}
+            </form>
+        </div>
+    {% endif %}
+
+<!-- Modal -->
+<div class="modal fade" id="date_modal" tabindex="-1" role="dialog" aria-labelledby="date_label" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="modal_date_label">Choose date</h4>
+        </div>
+
+        <div class="modal-body"></div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary">Select</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+    </div>
+</div>
+
+{% else %}
+    <p>No rooms are available.</p>
+{% endif %}
+
+{% endblock %}

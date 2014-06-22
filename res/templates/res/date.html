@@ -1,0 +1,40 @@
+<h4>{{ room.name }}</h4>
+<div>{{ room.description }}</div>
+
+{% if date_list %}
+
+    <form action="GET">
+    <h4>Select date</h4><br />
+    <div class="panel-group" id="accordion">
+        <div class="panel panel-default" style="width: 500px">
+            <table class="table">
+            <tr>
+            <th>#</th>
+            <th>Date</th>
+            </tr>
+        {% for date in date_list %}
+            <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>
+                <a data-toggle="collapse" data-parent="#accordion" href="#hours{{ forloop.counter }}">{{ date.to_string }}</a>
+                <div id="hours{{ forloop.counter }}" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        {% for hours in date.hours %}
+                            <span class="input-group-addon">
+                                <input type="checkbox" name="hours" value="{{ date.date }}:{{ hours.to_string }}">
+                            </span>
+                            {{ hours.to_string }}
+                            <br />
+                        {% endfor %}
+                    </div>
+                </tr>
+            </td>
+        {% endfor %}
+            </table>
+        </div>
+    </div>
+    </form>
+
+{% else %}
+    <p>No free date available.</p>
+{% endif %}

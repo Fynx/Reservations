@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+{% load bootstrap_toolkit %}
+{% load url from future %}
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% bootstrap_stylesheet_tag %}
+    {% bootstrap_stylesheet_tag "responsive" %}
+
+    <style type="text/css">
+        body {
+            padding: 50px;
+            padding-top: 100px;
+        }
+    </style>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+    {% bootstrap_javascript_tag %}
+</head>
+
+<body>
+
+{% if user.is_authenticated %}
+
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container-fluid">
+            <a class="brand" href="/res/">Home</a>
+            <a class="brand" href="/res/my_reservations/">My reservations</a>
+
+            <ul class="nav navbar-nav navbar-right">
+                <li class="navbar-text">Signed in as {{ user.username }}</li>
+                <li><a href="/account/logout/">Sign out</a></li>
+            </ul>
+
+            {% block navbar %}
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+{% bootstrap_messages %}
+
+{% block body %}
+{% endblock %}
+
+{% block anonymous %}
+{% endblock %}
+
+</body>
