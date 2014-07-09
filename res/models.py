@@ -76,7 +76,7 @@ class Date:
     def __init__(self, date, hours):
         self.date = date
         self.hours = []
-        self.hours.append(hours)
+        self.add_hours(hours)
 
     def to_string(self):
         string = str(self.date) + ' ('

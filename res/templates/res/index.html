@@ -2,6 +2,8 @@
 
 {% block body %}
 
+<!-- Search -->
+
 <form>
     <h4>Filter</h4>
     <ul>
@@ -29,6 +31,47 @@
 </form>
 
 {% if room_list %}
+
+<!-- Javascript -->
+
+<script>
+
+// initialise http response object
+var xml_http;
+if (window.XMLHttpRequest)
+    xml_http = new XMLHttpRequest();
+else
+    xml_http = new ActiveXObject("Microsoft.XMLHTTP");
+
+// when the document is loaded
+$(document).ready(function() {
+
+    $('#loading-image').bind('ajaxStart', function(){
+        $(this).show();
+    }).bind('ajaxStop', function(){
+        $(this).hide();
+    });
+
+    $("[data-toggle='modal']").click(function(e) {
+        e.preventDefault();
+        $('#date-modal').modal('show');
+
+        $.ajax({
+            url: $(this).attr("href"),
+            type: "GET",
+            success: function(data) {
+                document.getElementById("date-modal-body").innerHTML = data;
+            },
+            error: function(error) {
+                console.log("error in ajax");
+            }
+        });
+    });
+});
+
+</script>
+
+<!-- Rooms -->
 
 <style type="text/css">
 
@@ -60,9 +103,9 @@ body .modal {
         <td>{{ forloop.counter|add:first_entry }}</td>
         <td>
         {% if room.free_set.count > 0 %}
-            <a data-target="#date_modal" href="/res/{{ room.id }}/date/" data-toggle="modal">
+            <a href="/res/{{ room.id }}/date/" data-toggle='modal'>
         {% endif %}
-                {{ room.name }}
+            {{ room.name }}
         {% if room.free_set.count > 0 %}
             </a>
         {% endif %}
@@ -89,26 +132,29 @@ body .modal {
         </div>
     {% endif %}
 
+{% else %}
+    <p>No rooms are available.</p>
+{% endif %}
+
 <!-- Modal -->
-<div class="modal fade" id="date_modal" tabindex="-1" role="dialog" aria-labelledby="date_label" aria-hidden="true">
+
+<div class="modal fade" id="date-modal" tabindex="-1" role="dialog" aria-labelledby="date-label" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="modal_date_label">Choose date</h4>
+                <h4 class="modal-title" id="date-label">Choose date</h4>
         </div>
 
-        <div class="modal-body"></div>
+        <div id="date-modal-body" class="modal-body">
+            <img src="{{ STATIC_URL }}/res/hourglass.gif"/>
+        </div>
 
         <div class="modal-footer">
             <button type="button" class="btn btn-primary">Select</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button id="btn-close-date-modal" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         </div>
     </div>
 </div>
-
-{% else %}
-    <p>No rooms are available.</p>
-{% endif %}
 
 {% endblock %}

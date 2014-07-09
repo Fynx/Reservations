@@ -4,8 +4,9 @@
 
 <div class="well" style="width: 500px">
     Room: <h3>{{ free.room.name }}</h3><br />
-    Date: <div><b>{{ free.date }}</b></div><br /><br />
-    Time: <div><b>{{ starthour }} - {{ endhour }}</b></div><br />
+    {% for entry in dates %}
+        {{ entry }}<br />
+    {% endfor %}
 </div>
 <form action="/res/{{ free.id }}/confirmed/" method="POST">
 {% csrf_token %}
