@@ -46,11 +46,10 @@ else
 // when the document is loaded
 $(document).ready(function() {
 
-    $('#loading-image').bind('ajaxStart', function(){
-        $(this).show();
-    }).bind('ajaxStop', function(){
-        $(this).hide();
-    });
+    // show an hourglass gif while loading window
+    $('#loading-image')
+    .bind('ajaxStart', function(){ $(this).show(); })
+    .bind('ajaxStop',  function(){ $(this).hide(); });
 
     $("[data-toggle='modal']").click(function(e) {
         e.preventDefault();
@@ -146,14 +145,16 @@ body .modal {
                 <h4 class="modal-title" id="date-label">Choose date</h4>
         </div>
 
-        <div id="date-modal-body" class="modal-body">
-            <img src="{{ STATIC_URL }}/res/hourglass.gif"/>
-        </div>
+        <form name="frees" action="/res/check" method="GET">
+            <div id="date-modal-body" class="modal-body">
+                <img src="{{ STATIC_URL }}/res/hourglass.gif" hidden="true" />
+            </div>
 
-        <div class="modal-footer">
-            <button type="button" class="btn btn-primary">Select</button>
-            <button id="btn-close-date-modal" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" type="submit"> Select </button>
+                <button id="btn-close-date-modal" type="button" class="btn btn-default" data-dismiss="modal"> Close </button>
+            </div>
+        </form>
     </div>
 </div>
 

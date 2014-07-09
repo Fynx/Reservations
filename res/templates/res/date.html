@@ -3,7 +3,6 @@
 
 {% if date_list %}
 
-    <form action="GET">
     <h4>Select date</h4><br />
     <div class="panel-group" id="accordion">
         <div class="panel panel-default" style="width: 500px">
@@ -19,11 +18,12 @@
                 <a data-toggle="collapse" data-parent="#accordion" href="#hours{{ forloop.counter }}">{{ date.to_string }}</a>
                 <div id="hours{{ forloop.counter }}" class="panel-collapse collapse">
                     <div class="panel-body">
-                        {% for hours in date.hours %}
+                        {% for hours in date.cut_hours.hours %}
                             <span class="input-group-addon">
-                                <input type="checkbox" name="hours" value="{{ date.date }}:{{ hours.to_string }}">
+                                <input type="checkbox" name="date" value="{{ date.get_date_string }},{{ hours.to_string}}">
                             </span>
                             {{ hours.to_string }}
+                            {{ date.get_date_string }},{{ hours.to_string }}
                             <br />
                         {% endfor %}
                     </div>
@@ -32,8 +32,8 @@
         {% endfor %}
             </table>
         </div>
+        <input type="hidden" name="room_id" value="{{ room.id }}" />
     </div>
-    </form>
 
 {% else %}
     <p>No free date available.</p>

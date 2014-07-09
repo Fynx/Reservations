@@ -19,11 +19,11 @@ logger = logging.getLogger(__name__)
 @login_required
 @transaction.non_atomic_requests
 def index(request):
-    sort_order = request.GET.get('sort_order', 'id')
-    filter_name = request.GET.get('filter_name', '')
+    sort_order            = request.GET.get('sort_order', 'id')
+    filter_name           = request.GET.get('filter_name', '')
     filter_capacity_lower = request.GET.get('filter_capacity_lower', '0')
     filter_capacity_upper = request.GET.get('filter_capacity_upper', '1000')
-    page_number = request.GET.get('page_number', '0')
+    page_number           = request.GET.get('page_number', '0')
     # would be nice to give the choice to the user
     elems_per_page = 10
 
@@ -73,90 +73,44 @@ def date(request, room_id):
     free_list = room.free_set.all().order_by('starthour').order_by('date')
     date_list = []
 
-    for free in free_list:
+    for index in range(0, len(free_list)):
+        free = free_list[index]
         c_hours = Hours(free.starthour, free.endhour)
         if len(date_list) == 0 or free.date != date_list[-1].date:
-            date_list.append(Date(free.date, c_hours))
+            date = Date(free.date)
+            date.add_hours(c_hours)
+            date_list.append(date)
         else:
             date_list[-1].add_hours(c_hours)
 
     return render(request, 'res/date.html', {'room': room, \
             'date_list': date_list})
 
-def correct_time_value(value):
-    if value == '':
-        return '00'
-    else:
-        return value
-
-def check_if_hour(t):
-    return re.match('^(0|1\d)|(2(0|1|2|3))|\d$', t)
-
-def check_if_minutes(m):
-    return re.match('^(0|1|2|3|4|5)?\d$', m)
-
-def check_hours(starthour, startminutes, endhour, endminutes, segbegin, \
-        segend):
-    starthour = correct_time_value(starthour)
-    startminutes = correct_time_value(startminutes)
-    endhour = correct_time_value(endhour)
-    endminutes = correct_time_value(endminutes)
-
-    if check_if_hour(starthour) is None \
-            or check_if_hour(endhour) is None \
-            or check_if_minutes(startminutes) is None \
-            or check_if_minutes(endminutes) is None:
-        return False
-
-    starttime = datetime.strptime(starthour + '-' + startminutes, \
-            "%H-%M").time()
-    endtime = datetime.strptime(endhour + '-' + endminutes, "%H-%M").time()
-
-    if starttime >= endtime:
-        return False
-
-    if segbegin < segend:
-        return segbegin <= starttime and segend >= endtime \
-                and segbegin != segend
-    else:
-        return not(starttime < segbegin and starttime >= segend) \
-                and not(endtime > segend and endtime <= segbegin) \
-
 @login_required
 @transaction.non_atomic_requests
-def check(request, room_id, free_id):
-    starthour = request.POST.get('starthour', '')
-    startminutes = request.POST.get('startminutes', '')
-    endhour = request.POST.get('endhour', '')
-    endminutes = request.POST.get('endminutes', '')
+def check(request):
+    room_id   = int(request.GET.get('room_id', ''))
+    room      = get_object_or_404(Room, pk=room_id)
+    date_list = request.GET.getlist('date')
 
-    free = get_object_or_404(Free, pk=free_id)
+    if not date_list:
+        return render(request, 'res/index.html')
 
-    startminutes = correct_time_value(startminutes)
-    endminutes = correct_time_value(endminutes)
+    result_dates = []
+    for date in date_list:
+        full_date = Date.from_string(date)
+        if len(result_dates) == 0 or result_dates[-1].date != full_date.date:
+            result_dates.append(full_date)
+        else:
+            result_dates[-1].add_hours(full_date.hours[0])
 
-    if not check_hours(starthour, startminutes, endhour, endminutes, \
-            free.starthour, free.endhour):
-        return render(request, 'res/hours.html', {'free': free, \
-                'errors': True})
-    else:
-        return render(request, 'res/check.html', {'free': free, \
-                'starthour': starthour + ":" + startminutes, \
-                'endhour': endhour + ":" + endminutes})
-
-def fixed_time(string):
-    if re.match('^\d\d:\d\d$', string):
-        return string
-    elif re.match('^\d:\d\d$', string):
-        return '0' + string
-    elif re.match('^\d:\d$', string):
-        return '0' + string[0] + ':' + '0' + string[2]
-    elif re.match('^\d\d:\d$', string):
-        return string[:2] + ':0' + string[3]
-    elif re.match('^\d\d:$', string):
-        return string + '00'
-    else:
-        return '00:00'
+    for date in result_dates:
+        if not room.is_free(date):
+            return render(request, 'res/index.html',
+                    {'error': 'Error occurred during registration. Date '
+                        + date.to_string() + ' is not available.'})
+    return render(request, 'res/check.html', {'room': room,
+            'date_list': result_dates})
 
 @login_required
 @transaction.atomic
@@ -164,8 +118,8 @@ def confirmed(request, free_id):
     starthour = request.POST.get('starthour', '')
     endhour = request.POST.get('endhour', '')
 
-    starttime = datetime.strptime(fixed_time(starthour), '%H:%M').time()
-    endtime = datetime.strptime(fixed_time(endhour), '%H:%M').time()
+    starttime = datetime.strptime(Hours.fixed_time(starthour), '%H:%M').time()
+    endtime = datetime.strptime(Hours.fixed_time(endhour), '%H:%M').time()
     errors = False
 
     try:
