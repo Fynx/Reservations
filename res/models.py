@@ -29,11 +29,9 @@ class Room(models.Model):
         attrs = self.attributes.all()
         string = ''
         for a in attrs:
-            logger.error(a.name)
             if len(string) != 0:
                 string = string + ', '
             string = string + a.name
-        logger.error("done")
         return string
 
     def is_free(self, res_date):
@@ -41,26 +39,6 @@ class Room(models.Model):
             if not Free.get_free(self.id, res_date.date, hours):
                 return False
         return True
-
-    def apply_attribute_changes(self):
-        if self.capacity < 15:
-            board = Attribute.objects.get(name='whiteboard')
-            if board == None:
-                board = Attribute(name='whiteboard')
-                board.save()
-        else:
-            board = Attribute.objects.get(name='greenboard')
-            if board == None:
-                board = Attribute(name='greenboard')
-                board.save()
-        if not self.attributes.filter(name=board.name):
-            self.attributes.add(board)
-
-    def apply_attribute_changes_to_all():
-        rooms = Rooms.objects.all()
-        for room in rooms:
-            room.apply_attribute_changes()
-            room.save()
 
     def has_attributes(self):
         return self.attributes.exists()

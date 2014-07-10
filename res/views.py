@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 @login_required
 @transaction.non_atomic_requests
 def index(request, error=''):
-    logger.error("index")
     sort_order            = request.GET.get('sort_order', 'id')
     filter_name           = request.GET.get('filter_name', '')
     filter_capacity_lower = request.GET.get('filter_capacity_lower', '0')
@@ -46,8 +45,6 @@ def index(request, error=''):
 
     room_list = []
     for room in n_room_list:
-        #for key, value in inspect.getmembers(room):
-            #logger.error(str(key) + ': ' + str(value))
         logger.error(room.__str__())
         if room.attributes.filter(name__contains=attribute):
             room_list.append(room)
@@ -144,15 +141,11 @@ def confirmed(request):
         else:
             result_dates[-1].add_hours(full_date.hours[0])
 
-    logger.error("Checking...")
-
     for date in result_dates:
         if not room.is_free(date):
             return render(request, 'res/index.html',
                     {'error': 'Error occurred during registration. Date '
                         + date.to_string() + ' is not available.'})
-
-    logger.error("Registering!")
 
     for date in result_dates:
         for hours in date.hours:
