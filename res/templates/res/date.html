@@ -1,5 +1,8 @@
 <h4>{{ room.name }}</h4>
 <div>{{ room.description }}</div>
+{% if room.has_attributes %}
+    <div> Attributes: {{ room.attributes_string }} </div>
+{% endif %}
 
 {% if date_list %}
 

@@ -40,13 +40,17 @@ class FreeInline(admin.StackedInline):
     model = Free
     extra = 1
 
+class AttributeInline(admin.StackedInline):
+    model = Room.attributes.through
+    extra = 1
+
 class RoomAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,       {'fields': ['name']}),
         ('Capacity', {'fields': ['capacity']}),
         (None,       {'fields': ['description']}),
     ]
-    inlines = [FreeInline]
+    inlines = [FreeInline, AttributeInline]
 
 class UserAdmin(admin.ModelAdmin):
     fieldsets = [

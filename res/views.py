@@ -11,6 +11,7 @@ from datetime import datetime
 import logging
 import math
 import re
+import inspect
 
 from res.models import Room, Reservation, Free, Hours, Date
 
@@ -19,11 +20,13 @@ logger = logging.getLogger(__name__)
 @login_required
 @transaction.non_atomic_requests
 def index(request, error=''):
+    logger.error("index")
     sort_order            = request.GET.get('sort_order', 'id')
     filter_name           = request.GET.get('filter_name', '')
     filter_capacity_lower = request.GET.get('filter_capacity_lower', '0')
     filter_capacity_upper = request.GET.get('filter_capacity_upper', '1000')
     page_number           = request.GET.get('page_number', '0')
+    attribute             = request.GET.get('attribute', '')
     # would be nice to give the choice to the user
     elems_per_page = 10
 
@@ -35,13 +38,21 @@ def index(request, error=''):
     else:
         page_number = int(page_number)
 
-    room_list = Room.objects.filter(Q(name__contains=filter_name) \
+    n_room_list = Room.objects.filter(Q(name__contains=filter_name) \
             | Q(description__contains=filter_name)) \
             .filter(capacity__gte=filter_capacity_lower) \
             .filter(capacity__lte=filter_capacity_upper) \
             .order_by(sort_order)
 
-    room_list_count = room_list.count()
+    room_list = []
+    for room in n_room_list:
+        #for key, value in inspect.getmembers(room):
+            #logger.error(str(key) + ': ' + str(value))
+        logger.error(room.__str__())
+        if room.attributes.filter(name__contains=attribute):
+            room_list.append(room)
+
+    room_list_count = len(room_list)
     pages_number = int(math.ceil(float(room_list_count) \
             / float(elems_per_page)))
 
@@ -62,7 +73,9 @@ def index(request, error=''):
             'filter_capacity_lower': filter_capacity_lower, \
             'filter_capacity_upper': filter_capacity_upper, \
             'sort_order': sort_order, \
-            'page_number': page_number, 'pages': pages, \
+            'page_number': page_number, \
+            'attribute': attribute, \
+            'pages': pages, \
             'mult_pages': pages_number > 1, \
             'first_entry': str((page_number - 1) * 10)})
 
@@ -104,6 +117,7 @@ def check(request):
         else:
             result_dates[-1].add_hours(full_date.hours[0])
 
+    #TODO elegant error message
     for date in result_dates:
         if not room.is_free(date):
             return render(request, 'res/index.html',

@@ -27,8 +27,6 @@ TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = ['*']
 ATOMIC_REQUESTS = True
 
-#DAJAXICE_MEDIA_PREFIX="dajaxice"
-
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
@@ -46,8 +44,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'bootstrap_toolkit',
     'res',
-    #'dajax',
-    #'dajaxice',
     'south',
 )
 
@@ -63,7 +59,6 @@ MIDDLEWARE_CLASSES = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    #'dajaxice.finders.DajaxiceFinder',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
