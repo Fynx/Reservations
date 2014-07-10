@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 @login_required
 @transaction.non_atomic_requests
-def index(request):
+def index(request, error=''):
     sort_order            = request.GET.get('sort_order', 'id')
     filter_name           = request.GET.get('filter_name', '')
     filter_capacity_lower = request.GET.get('filter_capacity_lower', '0')
@@ -94,7 +94,7 @@ def check(request):
     date_list = request.GET.getlist('date')
 
     if not date_list:
-        return render(request, 'res/index.html')
+        return index(request, 'res/index.html')
 
     result_dates = []
     for date in date_list:
@@ -114,31 +114,41 @@ def check(request):
 
 @login_required
 @transaction.atomic
-def confirmed(request, free_id):
-    starthour = request.POST.get('starthour', '')
-    endhour = request.POST.get('endhour', '')
+def confirmed(request):
+    room_id   = int(request.GET.get('room_id', ''))
+    room      = get_object_or_404(Room, pk=room_id)
+    date_list = request.GET.getlist('date')
 
-    starttime = datetime.strptime(Hours.fixed_time(starthour), '%H:%M').time()
-    endtime = datetime.strptime(Hours.fixed_time(endhour), '%H:%M').time()
-    errors = False
+    if not date_list:
+        return render(request, 'res/index.html')
 
-    try:
-        free = Free.objects.get(pk=free_id)
-    except Free.DoesNotExist:
-        errors = True
+    result_dates = []
+    for date in date_list:
+        full_date = Date.from_string(date)
+        if len(result_dates) == 0 or result_dates[-1].date != full_date.date:
+            result_dates.append(full_date)
+        else:
+            result_dates[-1].add_hours(full_date.hours[0])
 
-    if not errors:
-        if free.starthour < starttime:
-            prev_free = Free.objects.create(room=free.room, date=free.date, \
-                    starthour=free.starthour, endhour=starttime)
-        if free.endhour > endtime:
-            next_free = Free.objects.create(room=free.room, date=free.date, \
-                    starthour=endtime, endhour=free.endhour)
-        Reservation.objects.create(room=free.room, date=free.date, \
-                starthour=starttime, endhour=endtime, user=request.user)
-        free.delete()
+    logger.error("Checking...")
 
-    return render(request, 'res/confirmed.html', {'errors': errors})
+    for date in result_dates:
+        if not room.is_free(date):
+            return render(request, 'res/index.html',
+                    {'error': 'Error occurred during registration. Date '
+                        + date.to_string() + ' is not available.'})
+
+    logger.error("Registering!")
+
+    for date in result_dates:
+        for hours in date.hours:
+            free = Free.get_free(room_id, date.date, hours)
+            free.split(hours.start, hours.end)
+            Reservation.objects.create(room=room, date=date.date, \
+                    starthour=hours.start, endhour=hours.end, \
+                    user=request.user)
+
+    return render(request, 'res/confirmed.html')
 
 @login_required
 @transaction.non_atomic_requests

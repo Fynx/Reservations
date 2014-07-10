@@ -2,14 +2,17 @@
 
 {% block body %}
 
-<div class="well" style="width: 500px">
-    Room: <h3>{{ room.name }}</h3><br />
-    {% for date in date_list %}
-        <p name="date" value="{{ date.date_string }},{{ date.hours.to_string }}">{{ date.to_string }}</p><br />
-    {% endfor %}
-</div>
+<form method="GET" action="/res/confirmed">
+    <div class="well" style="width: 500px">
+        Room: <h3>{{ room.name }}</h3><br />
+        {% for date in date_list %}
+            <p>{{ date.to_string }}</p><br />
+            {% for hours in date.hours %}
+                <input type="hidden" name="date" value="{{ date.get_date_string }},{{ hours.to_string }}" />
+            {% endfor %}
+        {% endfor %}
+    </div>
 
-<form method="GET">
     <input type="hidden" name="room_id" value="{{ room.id }}" />
     <input type="hidden">
     <button type="submit" class="btn btn-default">Confirm</button>

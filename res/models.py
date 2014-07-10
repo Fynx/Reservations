@@ -26,15 +26,8 @@ class Room(models.Model):
         return self.name
 
     def is_free(self, res_date):
-        c_date = datetime.combine(res_date.date, pdatetime.time.min)
-        n_date = c_date + pdatetime.timedelta(days=1)
-
-        frees = self.free_set.filter(date__gte=c_date).filter(date__lte=n_date)
-
         for hours in res_date.hours:
-            start = datetime.combine(res_date.date, hours.start)
-            end   = datetime.combine(res_date.date, hours.end)
-            if not frees.filter(date__lte=start).filter(date__gte=end).exists():
+            if not Free.get_free(self.id, res_date.date, hours):
                 return False
         return True
 
@@ -44,10 +37,31 @@ class Free(models.Model):
     date = models.DateField('date')
     starthour = models.TimeField()
     endhour = models.TimeField()
+
     def __str__(self):
         return '%d.%d.%d %d:%d-%d:%d %s' % (self.date.year, self.date.month, \
                 self.date.day, self.starthour.hour, self.starthour.minute, \
                 self.endhour.hour, self.endhour.minute, self.room.name)
+
+    def split(self, start, end):
+        if self.starthour < start:
+            f1 = Free(room=self.room, date=self.date,
+                    starthour=self.starthour, endhour=start)
+            f1.save()
+        if self.endhour > end:
+            f2 = Free(room=self.room, date=self.date, starthour=end,
+                    endhour=self.endhour)
+            f2.save()
+        self.delete()
+
+    def get_free(room_id, date, hours):
+        frees  = Free.objects.filter(room=room_id)
+        result = frees.filter(date=date).filter(starthour__lte=hours.start) \
+                .filter(endhour__gte=hours.end)
+        if len(result) == 1:
+            return result[0]
+        else:
+            return None
 
 class Reservation(models.Model):
     room = models.ForeignKey(Room)
@@ -91,62 +105,6 @@ class Hours:
     def minutes(self):
         return self.end.minute - self.start.minute \
                 + 60 * (self.end.hour - self.start.hour)
-
-    #Auxiliary functions
-
-    def correct_time_value(value):
-        if value == '':
-            return '00'
-        else:
-            return value
-
-    def check_if_hour(t):
-        return re.match('^(0|1\d)|(2(0|1|2|3))|\d$', t)
-
-    def check_if_minutes(m):
-        return re.match('^(0|1|2|3|4|5)?\d$', m)
-
-    def check_hours(starthour, startminutes, endhour, endminutes, segbegin, \
-            segend):
-        starthour    = correct_time_value(starthour)
-        startminutes = correct_time_value(startminutes)
-        endhour      = correct_time_value(endhour)
-        endminutes   = correct_time_value(endminutes)
-
-        if check_if_hour(starthour) is None \
-                or check_if_hour(endhour) is None \
-                or check_if_minutes(startminutes) is None \
-                or check_if_minutes(endminutes) is None:
-            return False
-
-        starttime = pdatetime.strptime(starthour + '-' + startminutes, \
-                "%H-%M").time()
-        endtime = pdatetime.strptime(endhour + '-' + endminutes, "%H-%M").time()
-
-        if starttime >= endtime:
-            return False
-
-        if segbegin < segend:
-            return segbegin <= starttime and segend >= endtime \
-                    and segbegin != segend
-        else:
-            return not(starttime < segbegin and starttime >= segend) \
-                    and not(endtime > segend and endtime <= segbegin)
-
-    def fixed_time(string):
-        if re.match('^\d\d:\d\d$', string):
-            return string
-        elif re.match('^\d:\d\d$', string):
-            return '0' + string
-        elif re.match('^\d:\d$', string):
-            return '0' + string[0] + ':' + '0' + string[2]
-        elif re.match('^\d\d:\d$', string):
-            return string[:2] + ':0' + string[3]
-        elif re.match('^\d\d:$', string):
-            return string + '00'
-        else:
-            return '00:00'
-
 
 class Date:
     def __init__(self, date):
