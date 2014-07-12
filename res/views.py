@@ -1,104 +1,29 @@
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse
-from django.template import RequestContext, loader
+from datetime import datetime
 from django.contrib import auth
-from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
+from django.core import serializers
 from django.db.models import Q
 from django.db import transaction
-from django.shortcuts import render
-from datetime import datetime
+from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import render, get_object_or_404
+from django.template import RequestContext, loader
 import logging
 import math
 import re
-import inspect
 
-from res.models import Room, Reservation, Free, Hours, Date
+from res.models import Attribute, Room, Reservation, Free, Hours, Date
 
 logger = logging.getLogger(__name__)
 
 @login_required
 @transaction.non_atomic_requests
 def index(request, error=''):
-    sort_order            = request.GET.get('sort_order', 'id')
-    filter_name           = request.GET.get('filter_name', '')
-    filter_capacity_lower = request.GET.get('filter_capacity_lower', '0')
-    filter_capacity_upper = request.GET.get('filter_capacity_upper', '1000')
-    page_number           = request.GET.get('page_number', '0')
-    attribute             = request.GET.get('attribute', '')
-    # would be nice to give the choice to the user
-    elems_per_page = 10
-
-    filter_capacity_lower = int(filter_capacity_lower)
-    filter_capacity_upper = int(filter_capacity_upper)
-
-    if page_number == '':
-        page_number = 0
-    else:
-        page_number = int(page_number)
-
-    n_room_list = Room.objects.filter(Q(name__contains=filter_name) \
-            | Q(description__contains=filter_name)) \
-            .filter(capacity__gte=filter_capacity_lower) \
-            .filter(capacity__lte=filter_capacity_upper) \
-            .order_by(sort_order)
-
-    room_list = []
-    for room in n_room_list:
-        logger.error(room.__str__())
-        if room.attributes.filter(name__contains=attribute):
-            room_list.append(room)
-
-    room_list_count = len(room_list)
-    pages_number = int(math.ceil(float(room_list_count) \
-            / float(elems_per_page)))
-
-    if page_number > math.ceil((room_list_count - 1) / elems_per_page):
-        page_number = int(math.ceil(float(room_list_count - 1) / \
-                float(elems_per_page)))
-    if page_number < 1:
-        page_number = 1
-
-    pages = ''
-    for i in range (0, pages_number):
-        pages = pages + 'x'
-
-    return render(request, 'res/index.html', {'room_list': \
-            room_list[(page_number - 1) * elems_per_page: \
-            min(page_number * elems_per_page, room_list_count)], \
-            'filter_name': filter_name, \
-            'filter_capacity_lower': filter_capacity_lower, \
-            'filter_capacity_upper': filter_capacity_upper, \
-            'sort_order': sort_order, \
-            'page_number': page_number, \
-            'attribute': attribute, \
-            'pages': pages, \
-            'mult_pages': pages_number > 1, \
-            'first_entry': str((page_number - 1) * 10)})
-
-@login_required
-@transaction.non_atomic_requests
-def date(request, room_id):
-    room = get_object_or_404(Room, pk=room_id)
-    free_list = room.free_set.all().order_by('starthour').order_by('date')
-    date_list = []
-
-    for index in range(0, len(free_list)):
-        free = free_list[index]
-        c_hours = Hours(free.starthour, free.endhour)
-        if len(date_list) == 0 or free.date != date_list[-1].date:
-            date = Date(free.date)
-            date.add_hours(c_hours)
-            date_list.append(date)
-        else:
-            date_list[-1].add_hours(c_hours)
-
-    return render(request, 'res/date.html', {'room': room, \
-            'date_list': date_list})
+    return render(request, 'res/index.html', {'error': error})
 
 @login_required
 @transaction.non_atomic_requests
 def check(request):
+    logger.error("check");
     room_id   = int(request.GET.get('room_id', ''))
     room      = get_object_or_404(Room, pk=room_id)
     date_list = request.GET.getlist('date')
@@ -126,6 +51,8 @@ def check(request):
 @login_required
 @transaction.atomic
 def confirmed(request):
+    logger.error("confirmed");
+
     room_id   = int(request.GET.get('room_id', ''))
     room      = get_object_or_404(Room, pk=room_id)
     date_list = request.GET.getlist('date')
@@ -191,3 +118,15 @@ def logout_view(request):
     # Redirect to a success page.
     return HttpResponseRedirect("/")
 
+@transaction.non_atomic_requests
+def attr_dump(request):
+    return HttpResponse(serializers.serialize("json", \
+            Attribute.objects.all()))
+
+@transaction.non_atomic_requests
+def rooms_dump(request):
+    return HttpResponse(serializers.serialize("json", Room.objects.all()))
+
+@transaction.non_atomic_requests
+def terms_dump(request):
+    return HttpResponse(serializers.serialize("json", Free.objects.all()))

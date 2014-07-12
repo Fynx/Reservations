@@ -3,72 +3,26 @@
 {% block body %}
 
 <!-- Search -->
+<button type="submit" id="btn-reload" class="btn btn-primary"> Reload </button>
+<br /><br />
 
-<form>
-    <h4>Filter</h4>
-    <ul>
-        <input type="text" name="filter_name" id="filter_name" class="form-control" placeholder="Room name / description"
-            {% if filter_name %} value="{{ filter_name }}" {% endif %}>
-        <br />
+<h4>Filter</h4>
+<ul>
+    <input type="text" id="filter_name" class="form-control" placeholder="Room name / description" value="">
+    <br />
 
-        Capacity from &nbsp;
-        <input type="number" name="filter_capacity_lower" id="filter_capacity_lower" class="form-control" style="width: 60px"
-            {% if filter_capacity_lower != "" %} value="{{ filter_capacity_lower }}" {% endif %}>
+    Capacity from &nbsp;
+    <input type="number" id="filter_capacity_lower" class="form-control" style="width: 60px" value="0">
 
-        &nbsp; to &nbsp;
-        <input type="number" name="filter_capacity_upper" id="filter_capacity_upper" class="form-control" style="width: 60px"
-            {% if filter_capacity_upper != "" %} value="{{ filter_capacity_upper }}" {% endif %}>
-        <br />
+    &nbsp; to &nbsp;
+    <input type="number" id="filter_capacity_upper" class="form-control" style="width: 60px" value="1000">
+    <br />
 
-        with &nbsp;
-        <input type="text" name="attribute" id="attribute" class="form-control" placeholder="Attribute"
-            {% if attribute %} value="{{ attribute }}" {% endif %}>
+    with &nbsp;
+    <input type="text" id="filter_attribute" class="form-control" placeholder="Attribute" value="">
 
-        <input type="hidden" name="sort_order" value={{ sort_order }}>
-        <input type="hidden" name="page_number" value={{ page_number }}>
-        <button type="submit" class="btn btn-default">Search</button>
-    </ul>
-</form>
-
-{% if room_list %}
-
-<!-- Javascript -->
-
-<script>
-
-// initialise http response object
-var xml_http;
-if (window.XMLHttpRequest)
-    xml_http = new XMLHttpRequest();
-else
-    xml_http = new ActiveXObject("Microsoft.XMLHTTP");
-
-// when the document is loaded
-$(document).ready(function() {
-
-    // show an hourglass gif while loading window
-    $('#loading-image')
-    .bind('ajaxStart', function(){ $(this).show(); })
-    .bind('ajaxStop',  function(){ $(this).hide(); });
-
-    $("[data-toggle='modal']").click(function(e) {
-        e.preventDefault();
-        $('#date-modal').modal('show');
-
-        $.ajax({
-            url: $(this).attr("href"),
-            type: "GET",
-            success: function(data) {
-                document.getElementById("date-modal-body").innerHTML = data;
-            },
-            error: function(error) {
-                console.log("error in ajax");
-            }
-        });
-    });
-});
-
-</script>
+    <button type="submit" id="btn-search" class="btn btn-default" href="#"> Search </button>
+</ul>
 
 <!-- Rooms -->
 
@@ -81,59 +35,24 @@ body .modal {
 
 </style>
 
-    <h3>Select room</h3><br />
-    <div class="panel panel-default" style="width: 500px">
-        <table class="table">
+<h3>Select room</h3><br />
+<div id="rooms" class="panel panel-default" style="width: 500px">
+    <table class="table">
         <tr>
-        <form>
-            <input type="hidden" name="filter_name" value={{ filter_name }}>
-            <input type="hidden" name="filter_capacity_lower" value={{ filter_capacity_lower }}>
-            <input type="hidden" name="filter_capacity_upper" value={{ filter_capacity_upper }}>
-            <input type="hidden" name="page_number" value={{ page_number }}>
-            <input type="hidden" name="attribute" value={{ attribute }}>
-            <th><button type="submit" class="btn btn-default" name="sort_order" id="sort_order" value="id">#</th>
-            <th><button type="submit" class="btn btn-default" name="sort_order" id="sort_order" value="name">Name</th>
-            <th><button type="submit" class="btn btn-default" name="sort_order" id="sort_order" value="capacity">Capacity</th>
-        </form>
+            <th><button type="submit" class="btn btn-default" name="sort_order" value="id">#</th>
+            <th><button type="submit" class="btn btn-default" name="sort_order" value="name">Name</th>
+            <th><button type="submit" class="btn btn-default" name="sort_order" value="capacity">Capacity</th>
         </tr>
+        Loading content...
+    </table>
+</div>
 
-    {% for room in room_list %}
-        <tr>
-        <td>{{ forloop.counter|add:first_entry }}</td>
-        <td>
-        {% if room.free_set.count > 0 %}
-            <a href="/res/{{ room.id }}/date/" data-toggle='modal'>
-        {% endif %}
-            {{ room.name }}
-        {% if room.free_set.count > 0 %}
-            </a>
-        {% endif %}
-        </td>
-        <td>{{ room.capacity }}</td>
-        </tr>
-    {% endfor %}
-        </table>
-    </div>
+<!-- Pagination -->
 
-    {% if mult_pages %}
-        <div class="btn-group">
-            <form action="" method="GET">
-                <input type="hidden" name="filter_name" value={{ filter_name }}>
-                <input type="hidden" name="filter_capacity_lower" value={{ filter_capacity_lower }}>
-                <input type="hidden" name="filter_capacity_upper" value={{ filter_capacity_upper }}>
-                <input type="hidden" name="sort_order" value={{ sort_order }}>
-                {% for x in pages %}
-                    <button class="btn btn-default" type="submit" name="page_number" value={{ forloop.counter }}>
-                        {{ forloop.counter }}
-                    </button>
-                {% endfor %}
-            </form>
-        </div>
-    {% endif %}
-
-{% else %}
-    <p>No rooms are available.</p>
-{% endif %}
+<div id="pagination">
+    <input class="btn btn-primary" type="submit" value="Previous" id="previous">
+    <input class="btn btn-primary" type="submit" value="Next" id="next">
+</div>
 
 <!-- Modal -->
 
@@ -143,13 +62,12 @@ body .modal {
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h4 class="modal-title" id="date-label">Choose date</h4>
+            </div>
         </div>
 
-        <form name="frees" action="/res/check" method="GET">
+        <form action="/res/check" method="GET">
             <div id="date-modal-body" class="modal-body">
-                <img src="{{ STATIC_URL }}/res/hourglass.gif" hidden="true" />
             </div>
-
             <div class="modal-footer">
                 <button class="btn btn-primary" type="submit"> Select </button>
                 <button id="btn-close-date-modal" type="button" class="btn btn-default" data-dismiss="modal"> Close </button>
@@ -157,5 +75,505 @@ body .modal {
         </form>
     </div>
 </div>
+
+<!-- QUnit -->
+
+<div id="quinit"></div>
+
+
+<!-- Javascript -->
+
+<script>
+
+/** Initialise http response object */
+var xml_http;
+if (window.XMLHttpRequest)
+    xml_http = new XMLHttpRequest();
+else
+    xml_http = new ActiveXObject("Microsoft.XMLHTTP");
+
+/** Values */
+var hourglassImg = "<img src=\"{{ STATIC_URL }}/res/hourglass.gif\" />"
+
+var attributes = [];
+var rooms      = [];
+var terms      = [];
+
+var rooms_filtered = [];
+var rooms_visible  = [];
+var page_number    = 0;
+
+/** Functions */
+
+function Room(id, name, capacity, description, attributes)
+{
+    this.id          = id;          // int
+    this.name        = name;        // string
+    this.capacity    = capacity;    // int
+    this.description = description; // string
+    this.attributes  = [];          // [int]
+
+    for (i in attributes)
+        this.attributes.push(parseInt(attributes[i]));
+}
+
+function Term(date, start, end)
+{
+    this.date  = date;
+    this.start = start;
+    this.end   = end;
+}
+
+function Terms(room_id)
+{
+    this.room_id        = room_id;
+    this.dates = [];
+
+    this.add_term = function(raw_term) {
+        this.dates.push(
+            new Term(raw_term.fields.date,
+                     raw_term.fields.starthour,
+                     raw_term.fields.endhour));
+    }
+
+    this.distinct_dates = function() {
+        dts = []
+        var score = 0;
+        var last_date = "";
+        for (var i in this.dates) {
+            var date = this.dates[i];
+            if (last_date != date.date)
+                dts[++score] = date.date;
+            last_date = date.date;
+        }
+        return dts;
+    };
+
+    this.dates_number = function() {
+        return this.distinct_dates().length;
+    };
+
+    this.hours = function(date) {
+        hours = [];
+        c_index = 0;
+        for (var index = 0; index < this.dates.length; ++index)
+            if (this.dates[index] == date)
+                hours[c_index++] = this.dates[index].hours;
+    };
+}
+
+function Attr(id, name)
+{
+    this.id    = id;
+    this.name  = name;
+}
+
+function Search()
+{
+    var values = {};
+
+    values["name"]           = "";
+    values["attribute"]      = "";
+    values["capacity_lower"] = 0;
+    values["capacity_upper"] = 1000;
+    values["order"]          = "id";
+
+    this.get = function(key) { return values[key]; };
+    this.set = function(key, value) { values[key] = value; };
+
+    this.update = function() {
+        this.set("name",           $("#filter_name").val());
+        this.set("attribute",      $("#filter_attribute").val());
+        this.set("capacity_lower", parseInt($("#filter_capacity_lower").val()));
+        this.set("capacity_upper", parseInt($("#filter_capacity_upper").val()));
+    };
+
+    this.filter = function(room) {
+        if (search.get("attribute") == "")
+            var has_attr = true;
+        else
+            var has_attr = false;
+
+        for (i in room.attributes) {
+            attr = room.attributes[i];
+            if (attributes[attr].name.indexOf(search.get("attribute")) != -1)
+                has_attr = true;
+        }
+
+        return has_attr
+            && room.name.indexOf(search.get("name")) != -1
+            && room.capacity >= search.get("capacity_lower")
+            && room.capacity < search.get("capacity_upper");
+    };
+}
+
+function Paginator()
+{
+    var values = {}
+
+    values["index"]          =  0;
+    values["pages_number"]   =  0;
+    values["rooms_per_page"] = 10;
+    values["rooms_number"]   =  0;
+    values["first_index"]    =  0;
+    values["last_index"]     =  0; /** not inclusive */
+
+    this.get = function(key) { return values[key]; };
+
+    this.set_index = function(i) {
+        if (i > values["pages_number"] || i < 0)
+            throw "Invalid page number.";
+        values["index"]       = i;
+        values["first_index"] = i * values["rooms_per_page"];
+        values["last_index"]  = Math.min((values["index"] + 1) * values["rooms_per_page"], values["rooms_number"]);
+
+        var n_index = 0;
+        rooms_visible = [];
+        for (var index = values["first_index"]; index < values["last_index"]; ++index)
+            rooms_visible[n_index++] = rooms_filtered[index];
+
+        if (i == 0)
+            $("#previous").hide();
+        else
+            $("#previous").show();
+        if (i >= values["pages_number"] - 1)
+            $("#next").hide();
+        else
+            $("#next").show();
+    };
+
+    this.inc_index = function() {
+        this.set_index(values["index"] + 1);
+    };
+
+    this.dec_index = function() {
+        this.set_index(values["index"] - 1);
+    };
+
+    this.set_rooms_number = function(n) {
+        values["rooms_number"] = n;
+        values["pages_number"] = Math.ceil(n / 10);
+    };
+
+    this.paginate = function() {
+        this.set_rooms_number(rooms_filtered.length);
+        this.set_index(0);
+    };
+}
+
+function filter_rooms()
+{
+    rooms_filtered = [];
+    var index = 0;
+    for (var i in rooms)
+        if (search.filter(rooms[i]))
+            rooms_filtered[index++] = rooms[i];
+}
+
+function sort_rooms()
+{
+    var s_order = search.get("order");
+    function cmp_id(a, b) { return a.id > b.id; }
+    function cmp_name(a, b) { return a.name > b.name; }
+    function cmp_capacity(a, b) { return a.capacity > b.capacity; }
+
+    if (s_order == "name")
+        rooms_filtered.sort(cmp_name);
+    else if (s_order == "capacity")
+        rooms_filtered.sort(cmp_capacity);
+    else
+        rooms_filtered.sort(cmp_id);
+}
+
+function show_content()
+{
+    search.update();
+    filter_rooms();
+    sort_rooms();
+    paginator.paginate();
+    show_rooms();
+}
+
+function show_rooms()
+{
+    var desc =
+        "<div id=\"rooms\" class=\"panel panel-default\" style=\"width: 500px\"> \n" +
+            "<table class=\"table\"> \n" +
+                "<tr> \n" +
+                    "<th><button type=\"submit\" class=\"btn btn-default\" name=\"sort_order\" value=\"id\">#</th> \n" +
+                    "<th><button type=\"submit\" class=\"btn btn-default\" name=\"sort_order\" value=\"name\">Name</th> \n" +
+                    "<th><button type=\"submit\" class=\"btn btn-default\" name=\"sort_order\" value=\"capacity\">Capacity</th> \n" +
+                "</tr> \n";
+
+    var num = 1;
+    for (var index in rooms_visible) {
+        var room = rooms_visible[index];
+        desc += "<tr> \n" +
+                    "<td> " + (num++).toString() + " </td> \n" +
+                    "<td> ";
+        if (terms[room.id] != null)
+            desc +=     "<a href=\"#\" name=\"room\" value=\"" + room.id + "\"> ";
+        desc +=         room.name;
+        if (terms[room.id] != null)
+            desc +=     " </a> \n";
+        desc +=     "</td> \n" +
+                    "<td> " + room.capacity + " </td> \n" +
+                "</tr> \n";
+    }
+
+    desc += "</table> \n" +
+        "</div> \n";
+
+    $("#rooms").html("<div id=\"rooms\"> " + desc + " </div>");
+}
+
+function show_room(id)
+{
+    room       = rooms[id];
+    terms_list = terms[id];
+
+    console.log("show room: " + room.id + ", " + room.name);
+
+    for (var i in room.attributes)
+        console.log(i + ": " + attributes[room.attributes[i]].name);
+
+    console.log("constructing");
+
+    /** Title */
+    date_modal_body = "<h4>" + room.name + "</h4>";
+
+    /** Description */
+    if (room.description != '') {
+        date_modal_body +=
+            "<div> \n" +
+                "<h5> Description </h5> \n" +
+                "&nbsp;&nbsp;&nbsp;" + room.description + "\n" +
+            "</div> \n";
+    }
+
+    /** Attributes */
+    if (room.attributes.length > 0) {
+        date_modal_body +=
+            "<div> \n" +
+                "<h5> Attributes: </h5> \n" +
+                "&nbsp;&nbsp;&nbsp; \n";
+        for (var index = 0; index < room.attributes.length; ++index) {
+            if (index > 0)
+                date_modal_body += ", ";
+            date_modal_body += attributes[room.attributes[index]].name;
+        }
+        date_modal_body += "<br /> \n";
+            "</div> \n";
+    }
+
+    /** Dates */
+    date_modal_body +=
+        "<h4>Select date</h4><br /> \n" +
+            "<div class=\"panel-group\" id=\"accordion\"> \n" +
+                "<div class=\"panel panel-default\" style=\"width: 500px\"> \n" +
+                    "<table class=\"table\"> \n" +
+                        "<tr> \n" +
+                            "<th>#</th> \n" +
+                            "<th>Date</th> \n" +
+                        "</tr> \n";
+    for (var index = 0; index < terms_list.dates_number(); ++index) {
+        var ddate = terms_list.distinct_dates()[index];
+        date_modal_body +=
+                        "<tr> \n" +
+                            "<td> " + (index + 1).toString() + "</td> \n"
+                            "<td> \n" +
+                                "<a data-toggle=\"collapse\" data-parent=\"#accordion\" href=\"#hours" + (index + 1).toString() + "\">" + ddate + "</a> \n" +
+                                "<div id=\"hours" + (index + 1).toString() + "\" class=\"panel-collapse collapse\"> \n" +
+                                    "<div class=\"panel-body\"> \n";
+        for (var hours in terms_list.hours(ddate)) {
+            date_modal_body +=
+                                    "<span class=\"input-group-addon\"> \n" +
+                                        "<input type=\"checkbox\" name=\"date\" value=\"" + ddate + "," + hours + "\"> \n" +
+                                        "</span> \n" +
+                                        hours + "\n" +
+                                        "<br /> \n";
+            date_modal_body +=      "</div> \n" +
+                                "</div> \n" +
+                            "</td> \n" +
+                        "</tr> \n";
+        }
+    }
+    date_modal_body +=
+                    "</table> \n" +
+                "</div> \n" +
+            "</div> \n";
+
+    $("#date-modal-body").html("<div id=\"date-modal-body\" class=\"modal-body\"> \n" + date_modal_body + "</div> \n");
+}
+
+function fetch_data()
+{
+    console.log("Fetching data...");
+
+    load_rooms();
+
+    function load_rooms()
+    {
+        $.ajax("/res/rooms_dump/")
+        .done(function(data) {
+            rooms = [];
+            localStorage.setItem("rooms", data);
+            console.log("Rooms loaded.");
+        })
+        .fail(function(data) {
+            console.log("Error in fetching rooms.");
+        })
+        .always(function() {
+            rooms_raw = JSON.parse(localStorage.getItem("rooms"));
+            for (i in rooms_raw) {
+                rooms[i] =
+                    new Room(rooms_raw[i].pk,
+                             rooms_raw[i].fields.name,
+                             parseInt(rooms_raw[i].fields.capacity),
+                             rooms_raw[i].fields.description,
+                             rooms_raw[i].fields.attributes);
+            }
+
+            load_attributes();
+        });
+    }
+
+    function load_attributes()
+    {
+        $.ajax("/res/attr_dump/")
+        .done(function(data) {
+            attributes = [];
+            localStorage.setItem("attr", data);
+            console.log("Attributes loaded.");
+            load_terms();
+        })
+        .fail(function(data) {
+            console.log("Error in fetching attributes.");
+        })
+        .always(function() {
+            attr_raw = JSON.parse(localStorage.getItem("attr"));
+            for (i in attr_raw) {
+                var a = attr_raw[i];
+                attributes[a.pk] = new Attr(a.pk, a.fields.name);
+            }
+        });
+    }
+
+    function load_terms()
+    {
+        $.ajax("/res/terms_dump/")
+        .done(function(data) {
+            terms = [];
+            localStorage.setItem("terms", data);
+            console.log("Terms loaded.");
+        })
+        .always(function() {
+            terms_raw = JSON.parse(localStorage.getItem("terms"));
+            for (var i in terms_raw) {
+                t = terms_raw[i];
+                if (terms[t.fields.room] == null)
+                    terms[t.fields.room] = new Terms(t.fields.room);
+                terms[t.fields.room].add_term(t);
+            }
+
+            do_tests();
+
+            show_content();
+        });
+    }
+}
+
+var paginator = new Paginator();
+var search    = new Search();
+
+/** When the document is loaded */
+$(document).ready(function() {
+    console.log("Ready!");
+
+    fetch_data();
+
+    /** Show an hourglass gif while loading window */
+    $('#loading-image')
+    .bind('ajaxStart', function(){ $(this).show(); })
+    .bind('ajaxStop',  function(){ $(this).hide(); });
+
+    $(document).on('click', "#btn-reload", function(e) {
+        console.log("Reloading...");
+        fetch_data();
+    });
+
+    $(document).on('click', "#btn-search", function(e) {
+        console.log("Filtering...");
+        show_content();
+    });
+
+    $(document).on('click', "[name='room']", function(e) {
+        show_room(parseInt($(this).attr("value")));
+    });
+
+    $(document).on('click', "#previous", function(e) {
+        paginator.dec_index();
+        show_content();
+    });
+
+    $(document).on('click', "#next", function(e) {
+        paginator.inc_index();
+        show_content();
+    });
+
+    $(document).on('click', "[name='sort_order']", function() {
+        search.set("order", $(this).attr("value"));
+        console.log("Setting order to " + search.get("order"));
+        show_content();
+    });
+});
+
+function do_tests()
+{
+//     console.log("Testing...");
+
+    QUnit.test("Rooms critical fields", function(assert) {
+//         console.log("rooms:");
+        for (i in rooms) {
+            var room = rooms[i];
+//             console.log(room.id + ": " + room.name + " (" + room.capacity + ")");
+            assert.notEqual(room.id, "");
+            assert.notEqual(room.name, "");
+            assert.notEqual(room.capacity, "");
+        }
+    });
+
+    QUnit.test("Attributes critical fields", function(assert) {
+//         console.log("attributes:");
+        for (i in attributes) {
+            var attr = attributes[i];
+//             console.log(attr.name);
+            assert.notEqual(attr.name, "");
+        }
+    });
+
+    QUnit.test("Terms critical fields", function(assert) {
+//         console.log("terms:");
+        for (i in terms) {
+            var entry = terms[i];
+
+//             console.log(entry.room_id + ": ");
+//             var dates = [];
+//             for (x in entry.dates)
+//                 dates += entry.dates[x].date + " (" + entry.dates[x].start + "-" + entry.dates[x].end + "), ";
+//             console.log(dates);
+
+            assert.notEqual(entry.room_id, "");
+            for (term in entry.days){
+                assert.notEqual(term.start, "");
+                assert.notEqual(term.end, "");
+            }
+        }
+    });
+
+//     console.log("All tests passed!");
+}
+
+</script>
 
 {% endblock %}

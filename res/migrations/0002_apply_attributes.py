@@ -7,6 +7,8 @@ from django.db import models
 class Migration(DataMigration):
 
     def forwards(self, orm):
+        self.backwards(orm);
+
         whiteboard = orm['res.Attribute'](name='Whiteboard')
         greenboard = orm['res.Attribute'](name='Greenboard')
         projector  = orm['res.Attribute'](name='Projector')

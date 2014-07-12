@@ -6,8 +6,10 @@ from res import views
 
 urlpatterns = patterns('',
     url(r'^$', views.index, name='index'),
-    url(r'^(?P<room_id>\d+)/date/$', views.date, name='date'),
     url(r'^check/$', views.check, name='check'),
     url(r'^confirmed/$', views.confirmed, name='confirmed'),
-    url('^my_reservations/$', views.my_reservations),
+    url(r'^my_reservations/$', views.my_reservations),
+    url(r'^attr_dump/$', views.attr_dump),
+    url(r'^rooms_dump/$', views.rooms_dump),
+    url(r'^terms_dump/$', views.terms_dump),
 )

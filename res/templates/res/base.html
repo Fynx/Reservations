@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-{% load bootstrap_toolkit %}
+
+<html manifest="{{ STATIC_URL }}cache.manifest">
+
 {% load url from future %}
 
 {% load staticfiles %}
@@ -9,8 +11,9 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% bootstrap_stylesheet_tag %}
-    {% bootstrap_stylesheet_tag "responsive" %}
+
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.css"></script>
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap-responsive.css"></script>
 
     <style type="text/css">
         body {
@@ -19,8 +22,14 @@
         }
     </style>
 
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
-    {% bootstrap_javascript_tag %}
+    <script src="{{ STATIC_URL }}js/jquery.min.js"></script>
+    <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+
+    <!--QUnit-->
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/qunit-1.14.0.css">
+    <script src="{{ STATIC_URL }}js/qunit-1.14.0.js"></script>
+
+    <title> Reservations </title>
 </head>
 
 <body>
@@ -46,8 +55,6 @@
 
 {% endif %}
 
-{% bootstrap_messages %}
-
 {% if error %}
     {{ error }}<br />
 {% endif %}
@@ -60,3 +67,5 @@
 {% endblock %}
 
 </body>
+
+</html>

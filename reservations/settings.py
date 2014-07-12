@@ -42,7 +42,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'bootstrap_toolkit',
+    'django_qunit',
     'res',
     'south',
 )
@@ -110,6 +110,8 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
     '/static/',
 )
+
+QUNIT_TEST_DIRECTORY = '/static/django-qunit-0.1.1/'
 
 LOGIN_URL = '/account/login/'
 
