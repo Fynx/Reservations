@@ -409,10 +409,10 @@ function show_room(id)
             date_modal_body +=
                                     terms_list.hours(ddate)[hours] + "\&nbsp;&nbsp;" +
                                     "<span class=\"input-group-addon\"> \n" +
-                                        "<input type=\"text\" name=\"date_from\" value=\"\" idx=\"" +
+                                        "<input type=\"text\" name=\"date_from\" value=\"\" readonly=\"true\" idx=\"" +
                                             ddate + "," + terms_list.hours(ddate)[hours] + "\" style=\"width: 50px\"> \n" +
                                         "-" +
-                                        "<input type=\"text\" name=\"date_to\" value=\"\" idx=\"" +
+                                        "<input type=\"text\" name=\"date_to\" value=\"\" readonly=\"true\" idx=\"" +
                                             ddate + "," + terms_list.hours(ddate)[hours] + "\" style=\"width: 50px\"> \n" +
                                         "&nbsp;&nbsp <button name=\"clear-hours\" class=\"btn btn-primary btn-sm\" " +
                                             "idy=\"" + ddate + "," + terms_list.hours(ddate)[hours] + "\" > \n" +

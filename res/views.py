@@ -47,11 +47,14 @@ def check(request):
             logger.error(date)
 
             full_date = Date.from_string(date)
-            if len(result_dates) == 0 or result_dates[-1].date != full_date.date:
-                result_dates.append(full_date)
-            else:
-                result_dates[-1].add_hours(full_date.hours[0])
+            if full_date.hours[0].start < full_date.hours[0].end:
+                if len(result_dates) == 0 or result_dates[-1].date != full_date.date:
+                    result_dates.append(full_date)
+                else:
+                    result_dates[-1].add_hours(full_date.hours[0])
 
+    if not result_dates:
+        return index(request, 'Invalid fields\' values.')
     for date in result_dates:
         if not room.is_free(date):
             return index(request, 'Error occurred during registration. Date '
