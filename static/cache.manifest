@@ -1,9 +1,10 @@
 CACHE MANIFEST
 
 NETWORK:
+/account/login/
+/account/logout/
 /res/check.html
 /res/confirmed.html
-/res/login.html
 /res/my_reservations.html
 /res/attr_dump/
 /res/rooms_dump/
