@@ -69,7 +69,7 @@ body .modal {
             <div id="date-modal-body" class="modal-body">
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" type="submit"> Select </button>
+                <button id="btn-submit-choices" class="btn btn-primary" type="submit"> Select </button>
                 <button id="btn-close-date-modal" type="button" class="btn btn-default" data-dismiss="modal"> Close </button>
             </div>
         </form>
@@ -407,10 +407,18 @@ function show_room(id)
                                 "<div class=\"panel-body\"> \n";
         for (var hours in terms_list.hours(ddate))
             date_modal_body +=
+                                    terms_list.hours(ddate)[hours] + "\&nbsp;&nbsp;" +
                                     "<span class=\"input-group-addon\"> \n" +
-                                        "<input type=\"checkbox\" name=\"date\" value=\"" + ddate + "," + terms_list.hours(ddate)[hours] + "\"> \n" +
+                                        "<input type=\"text\" name=\"date_from\" value=\"\" idx=\"" +
+                                            ddate + "," + terms_list.hours(ddate)[hours] + "\" style=\"width: 50px\"> \n" +
+                                        "-" +
+                                        "<input type=\"text\" name=\"date_to\" value=\"\" idx=\"" +
+                                            ddate + "," + terms_list.hours(ddate)[hours] + "\" style=\"width: 50px\"> \n" +
+                                        "&nbsp;&nbsp <button name=\"clear-hours\" class=\"btn btn-primary btn-sm\" " +
+                                            "idy=\"" + ddate + "," + terms_list.hours(ddate)[hours] + "\" > \n" +
+                                            " Clear \n" +
+                                        "</button> \n" +
                                     "</span> \n" +
-                                    terms_list.hours(ddate)[hours] + "\n" +
                                     "<br /> \n";
         date_modal_body +=      "</div> \n" +
                             "</div> \n" +
@@ -424,6 +432,33 @@ function show_room(id)
         "<input type=\"hidden\" id=\"room_id\" name=\"room_id\" value=\"" + id.toString() + "\">";
 
     $("#date-modal-body").html("<div id=\"date-modal-body\" class=\"modal-body\"> \n" + date_modal_body + "</div> \n");
+
+    $(document).on('click', "[name=\"clear-hours\"]", function(e) {
+        e.preventDefault();
+        var my_idy = $(this).attr("idy");
+        $("[idx=\"" + my_idy + "\"]").val("");
+    });
+
+    for (index in terms_list.distinct_dates()) {
+        var ddate = terms_list.distinct_dates()[index];
+        for (var hours in terms_list.hours(ddate)) {
+            var h_str = terms_list.hours(ddate)[hours];
+            var mins_ind = h_str.indexOf('-');
+
+            $("[name=\"date_from\"]")
+            .filter("[idx=\"" + ddate + "," + terms_list.hours(ddate)[hours] + "\"]")
+            .timepicker({
+                'minTime': h_str.substring(0, mins_ind),
+                'maxTime': h_str.substring(mins_ind + 1, h_str.length)
+            })
+            $("[name=\"date_to\"]")
+            .filter("[idx=\"" + ddate + "," + terms_list.hours(ddate)[hours] + "\"]")
+            .timepicker({
+                'minTime': h_str.substring(0, mins_ind),
+                'maxTime': h_str.substring(mins_ind + 1, h_str.length)
+            });
+        }
+    }
     $("#date-modal").modal('show');
 }
 
@@ -531,9 +566,16 @@ $(document).ready(function() {
         show_content();
     });
 
+    $(document).on('click', "#btn-submit-choices", function(e) {
+        //hackish. Sorry, django.
+        $("[name='date_from'],[name='date_to']").each(function() {
+            value = $(this).attr("idx") + "|" + $(this).val();
+            $(this).val(value);
+        });
+    });
+
     $(document).on('click', "[name='room']", function(e) {
         show_room(parseInt($(this).attr("value")));
-        console.log("show room " + $(this).attr("value"));
     });
 
     $(document).on('click', "#previous", function(e) {
@@ -596,7 +638,7 @@ function do_tests()
         }
     });
 
-    console.log("All tests passed!");
+//     console.log("All tests passed!");
 }
 
 </script>

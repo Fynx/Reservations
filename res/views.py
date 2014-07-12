@@ -23,36 +23,45 @@ def index(request, error=''):
 @login_required
 @transaction.non_atomic_requests
 def check(request):
-    logger.error("check");
     room_id   = int(request.GET.get('room_id', ''))
     room      = get_object_or_404(Room, pk=room_id)
-    date_list = request.GET.getlist('date')
 
-    if not date_list:
-        return index(request, 'res/index.html')
+    date_from_list = request.GET.getlist('date_from')
+    date_to_list   = request.GET.getlist('date_to')
+
+    if not date_from_list:
+        return index(request)
+
+    date_from_list = sorted(date_from_list)
+    date_to_list   = sorted(date_to_list)
 
     result_dates = []
-    for date in date_list:
-        full_date = Date.from_string(date)
-        if len(result_dates) == 0 or result_dates[-1].date != full_date.date:
-            result_dates.append(full_date)
-        else:
-            result_dates[-1].add_hours(full_date.hours[0])
+    for i in range(len(date_from_list)):
+        d_from = date_from_list[i]
+        d_to   = date_to_list[i]
 
-    #TODO elegant error message
+        if len(d_from.split('|')[1]) > 0 and len(d_to.split('|')[1]) > 0:
+            date = d_from.split(',')[0] + ',' + d_from.split('|')[1] + '-' \
+                    + d_to.split('|')[1]
+
+            logger.error(date)
+
+            full_date = Date.from_string(date)
+            if len(result_dates) == 0 or result_dates[-1].date != full_date.date:
+                result_dates.append(full_date)
+            else:
+                result_dates[-1].add_hours(full_date.hours[0])
+
     for date in result_dates:
         if not room.is_free(date):
-            return render(request, 'res/index.html',
-                    {'error': 'Error occurred during registration. Date '
-                        + date.to_string() + ' is not available.'})
+            return index(request, 'Error occurred during registration. Date '
+                    + date.to_string() + ' is not available.')
     return render(request, 'res/check.html', {'room': room,
             'date_list': result_dates})
 
 @login_required
 @transaction.atomic
 def confirmed(request):
-    logger.error("confirmed");
-
     room_id   = int(request.GET.get('room_id', ''))
     room      = get_object_or_404(Room, pk=room_id)
     date_list = request.GET.getlist('date')
@@ -129,4 +138,5 @@ def rooms_dump(request):
 
 @transaction.non_atomic_requests
 def terms_dump(request):
-    return HttpResponse(serializers.serialize("json", Free.objects.all()))
+    return HttpResponse(serializers.serialize("json", \
+            Free.objects.all().order_by('starthour')))
