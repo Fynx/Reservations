@@ -134,14 +134,14 @@ class Date:
     # String from which a Date object is created is slightly different from
     # the one created by to_string method.
     def from_string(string):
-        date  = datetime.strptime(string[0:8], "%d.%m.%y")
-        hours = Hours.from_string(string[9:20])
+        date  = datetime.strptime(string[0:10], "%Y-%m-%d")
+        hours = Hours.from_string(string[11:22])
         date_object = Date(date)
         date_object.add_hours(hours)
         return date_object
 
     def get_date_string(self):
-        return self.date.strftime("%d.%m.%y")
+        return self.date.strftime("%Y-%m-%d")
 
     def add_hours(self, hours):
         if len(self.hours) == 0 or hours.start != self.hours[-1].end:

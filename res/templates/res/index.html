@@ -80,7 +80,6 @@ body .modal {
 
 <div id="quinit"></div>
 
-
 <!-- Javascript -->
 
 <script>
@@ -141,10 +140,12 @@ function Terms(room_id)
         var score = 0;
         var last_date = "";
         for (var i in this.dates) {
-            var date = this.dates[i];
-            if (last_date != date.date)
-                dts[++score] = date.date;
-            last_date = date.date;
+            var date = this.dates[i].date;
+            if (last_date != date) {
+                dts[score] = date;
+                ++score;
+            }
+            last_date = date;
         }
         return dts;
     };
@@ -155,11 +156,27 @@ function Terms(room_id)
 
     this.hours = function(date) {
         hours = [];
-        c_index = 0;
-        for (var index = 0; index < this.dates.length; ++index)
-            if (this.dates[index] == date)
-                hours[c_index++] = this.dates[index].hours;
+        var c_index = 0;
+        for (var index in this.dates) {
+            if (this.dates[index].date == date) {
+                hours[c_index] = this.dates[index].start.substring(0, 5) + "-" + this.dates[index].end.substring(0, 5);
+                ++c_index;
+            }
+        }
+        return hours;
     };
+
+    this.hours_string = function(date) {
+        hours = this.hours(date);
+        string = "(";
+        for (var i = 0; i < hours.length; ++i) {
+            if (i != 0)
+                string += ", ";
+            string += hours[i];
+        }
+        string += ")";
+        return string;
+    }
 }
 
 function Attr(id, name)
@@ -229,8 +246,10 @@ function Paginator()
 
         var n_index = 0;
         rooms_visible = [];
-        for (var index = values["first_index"]; index < values["last_index"]; ++index)
-            rooms_visible[n_index++] = rooms_filtered[index];
+        for (var index = values["first_index"]; index < values["last_index"]; ++index) {
+            rooms_visible[n_index] = rooms_filtered[index];
+            ++n_index;
+        }
 
         if (i == 0)
             $("#previous").hide();
@@ -265,9 +284,12 @@ function filter_rooms()
 {
     rooms_filtered = [];
     var index = 0;
-    for (var i in rooms)
-        if (search.filter(rooms[i]))
-            rooms_filtered[index++] = rooms[i];
+    for (var i in rooms) {
+        if (search.filter(rooms[i])) {
+            rooms_filtered[index] = rooms[i];
+            ++index;
+        }
+    }
 }
 
 function sort_rooms()
@@ -309,7 +331,7 @@ function show_rooms()
     for (var index in rooms_visible) {
         var room = rooms_visible[index];
         desc += "<tr> \n" +
-                    "<td> " + (num++).toString() + " </td> \n" +
+                    "<td> " + num.toString() + " </td> \n" +
                     "<td> ";
         if (terms[room.id] != null)
             desc +=     "<a href=\"#\" name=\"room\" value=\"" + room.id + "\"> ";
@@ -319,6 +341,7 @@ function show_rooms()
         desc +=     "</td> \n" +
                     "<td> " + room.capacity + " </td> \n" +
                 "</tr> \n";
+        ++num;
     }
 
     desc += "</table> \n" +
@@ -330,14 +353,7 @@ function show_rooms()
 function show_room(id)
 {
     room       = rooms[id];
-    terms_list = terms[id];
-
-    console.log("show room: " + room.id + ", " + room.name);
-
-    for (var i in room.attributes)
-        console.log(i + ": " + attributes[room.attributes[i]].name);
-
-    console.log("constructing");
+    terms_list = terms[room.id];
 
     /** Title */
     date_modal_body = "<h4>" + room.name + "</h4>";
@@ -369,41 +385,46 @@ function show_room(id)
     /** Dates */
     date_modal_body +=
         "<h4>Select date</h4><br /> \n" +
-            "<div class=\"panel-group\" id=\"accordion\"> \n" +
-                "<div class=\"panel panel-default\" style=\"width: 500px\"> \n" +
-                    "<table class=\"table\"> \n" +
-                        "<tr> \n" +
-                            "<th>#</th> \n" +
-                            "<th>Date</th> \n" +
-                        "</tr> \n";
-    for (var index = 0; index < terms_list.dates_number(); ++index) {
+        "<div class=\"panel-group\" id=\"accordion\"> \n" +
+            "<div class=\"panel panel-default\" style=\"width: 500px\"> \n" +
+                "<table class=\"table\"> \n" +
+                    "<tr> \n" +
+                        "<th>#</th> \n" +
+                        "<th>Date</th> \n" +
+                    "</tr> \n";
+    var num = 0;
+    for (index in terms_list.distinct_dates()) {
+        ++num;
         var ddate = terms_list.distinct_dates()[index];
         date_modal_body +=
-                        "<tr> \n" +
-                            "<td> " + (index + 1).toString() + "</td> \n"
-                            "<td> \n" +
-                                "<a data-toggle=\"collapse\" data-parent=\"#accordion\" href=\"#hours" + (index + 1).toString() + "\">" + ddate + "</a> \n" +
-                                "<div id=\"hours" + (index + 1).toString() + "\" class=\"panel-collapse collapse\"> \n" +
-                                    "<div class=\"panel-body\"> \n";
-        for (var hours in terms_list.hours(ddate)) {
+                    "<tr> \n" +
+                        "<td> " + num.toString() + "</td> \n" +
+                        "<td> \n" +
+                            "<a data-toggle=\"collapse\" data-parent=\"#accordion\" href=\"#hours" +
+                                num.toString() + "\">" + ddate + " " + terms_list.hours_string(ddate) +
+                            "</a> \n" +
+                            "<div id=\"hours" + num.toString() + "\" class=\"panel-collapse collapse\"> \n" +
+                                "<div class=\"panel-body\"> \n";
+        for (var hours in terms_list.hours(ddate))
             date_modal_body +=
                                     "<span class=\"input-group-addon\"> \n" +
-                                        "<input type=\"checkbox\" name=\"date\" value=\"" + ddate + "," + hours + "\"> \n" +
-                                        "</span> \n" +
-                                        hours + "\n" +
-                                        "<br /> \n";
-            date_modal_body +=      "</div> \n" +
-                                "</div> \n" +
-                            "</td> \n" +
-                        "</tr> \n";
-        }
+                                        "<input type=\"checkbox\" name=\"date\" value=\"" + ddate + "," + terms_list.hours(ddate)[hours] + "\"> \n" +
+                                    "</span> \n" +
+                                    terms_list.hours(ddate)[hours] + "\n" +
+                                    "<br /> \n";
+        date_modal_body +=      "</div> \n" +
+                            "</div> \n" +
+                        "</td> \n" +
+                    "</tr> \n";
     }
     date_modal_body +=
-                    "</table> \n" +
-                "</div> \n" +
-            "</div> \n";
+                "</table> \n" +
+            "</div> \n" +
+        "</div> \n" +
+        "<input type=\"hidden\" id=\"room_id\" name=\"room_id\" value=\"" + id.toString() + "\">";
 
     $("#date-modal-body").html("<div id=\"date-modal-body\" class=\"modal-body\"> \n" + date_modal_body + "</div> \n");
+    $("#date-modal").modal('show');
 }
 
 function fetch_data()
@@ -426,8 +447,8 @@ function fetch_data()
         .always(function() {
             rooms_raw = JSON.parse(localStorage.getItem("rooms"));
             for (i in rooms_raw) {
-                rooms[i] =
-                    new Room(rooms_raw[i].pk,
+                rooms[rooms_raw[i].pk] =
+                    new Room(parseInt(rooms_raw[i].pk),
                              rooms_raw[i].fields.name,
                              parseInt(rooms_raw[i].fields.capacity),
                              rooms_raw[i].fields.description,
@@ -445,7 +466,6 @@ function fetch_data()
             attributes = [];
             localStorage.setItem("attr", data);
             console.log("Attributes loaded.");
-            load_terms();
         })
         .fail(function(data) {
             console.log("Error in fetching attributes.");
@@ -456,6 +476,8 @@ function fetch_data()
                 var a = attr_raw[i];
                 attributes[a.pk] = new Attr(a.pk, a.fields.name);
             }
+
+            load_terms();
         });
     }
 
@@ -466,6 +488,9 @@ function fetch_data()
             terms = [];
             localStorage.setItem("terms", data);
             console.log("Terms loaded.");
+        })
+        .fail(function(data) {
+            console.log("Error in fetching terms.");
         })
         .always(function() {
             terms_raw = JSON.parse(localStorage.getItem("terms"));
@@ -488,7 +513,6 @@ var search    = new Search();
 
 /** When the document is loaded */
 $(document).ready(function() {
-    console.log("Ready!");
 
     fetch_data();
 
@@ -509,6 +533,7 @@ $(document).ready(function() {
 
     $(document).on('click', "[name='room']", function(e) {
         show_room(parseInt($(this).attr("value")));
+        console.log("show room " + $(this).attr("value"));
     });
 
     $(document).on('click', "#previous", function(e) {
@@ -571,7 +596,7 @@ function do_tests()
         }
     });
 
-//     console.log("All tests passed!");
+    console.log("All tests passed!");
 }
 
 </script>

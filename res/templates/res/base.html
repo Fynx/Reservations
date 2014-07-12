@@ -42,10 +42,12 @@
             <a class="brand" href="/res/">Home</a>
             <a class="brand" href="/res/my_reservations/">My reservations</a>
 
-            <ul class="nav navbar-nav navbar-right">
-                <li class="navbar-text">Signed in as {{ user.username }}</li>
-                <li><a href="/account/logout/">Sign out</a></li>
-            </ul>
+            <div class="navbar header pull-right">
+                <ul class="nav navbar-nav pull-right">
+                    <li class="navbar-text">Signed in as {{ user.username }}</li>
+                    <li><a href="/account/logout/">Sign out</a></li>
+                </ul>
+            </div>
 
             {% block navbar %}
             {% endblock %}
