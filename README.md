@@ -18,5 +18,5 @@ _python manage.py syncdb --migrate_
 _python manage.py migrate_
 
 * In order to remigrate data for room attributes
-_python manage.py migrate 0001 --fake_
+_python manage.py migrate res 0001 --fake_
 _python manage.py migrate_

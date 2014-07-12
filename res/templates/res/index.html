@@ -230,7 +230,7 @@ function Paginator()
 
     values["index"]          =  0;
     values["pages_number"]   =  0;
-    values["rooms_per_page"] = 10;
+    values["rooms_per_page"] =  5;
     values["rooms_number"]   =  0;
     values["first_index"]    =  0;
     values["last_index"]     =  0; /** not inclusive */
@@ -271,7 +271,7 @@ function Paginator()
 
     this.set_rooms_number = function(n) {
         values["rooms_number"] = n;
-        values["pages_number"] = Math.ceil(n / 10);
+        values["pages_number"] = Math.ceil(n / values["rooms_per_page"]);
     };
 
     this.paginate = function() {
@@ -327,7 +327,7 @@ function show_rooms()
                     "<th><button type=\"submit\" class=\"btn btn-default\" name=\"sort_order\" value=\"capacity\">Capacity</th> \n" +
                 "</tr> \n";
 
-    var num = 1;
+    var num = paginator.get("first_index") + 1;
     for (var index in rooms_visible) {
         var room = rooms_visible[index];
         desc += "<tr> \n" +
@@ -580,12 +580,12 @@ $(document).ready(function() {
 
     $(document).on('click', "#previous", function(e) {
         paginator.dec_index();
-        show_content();
+        show_rooms();
     });
 
     $(document).on('click', "#next", function(e) {
         paginator.inc_index();
-        show_content();
+        show_rooms();
     });
 
     $(document).on('click', "[name='sort_order']", function() {
