@@ -472,7 +472,6 @@ function fetch_data()
     {
         $.ajax("/res/rooms_dump/")
         .done(function(data) {
-            rooms = [];
             localStorage.setItem("rooms", data);
             console.log("Rooms loaded.");
         })
@@ -480,6 +479,7 @@ function fetch_data()
             console.log("Error in fetching rooms.");
         })
         .always(function() {
+            rooms = [];
             rooms_raw = JSON.parse(localStorage.getItem("rooms"));
             for (i in rooms_raw) {
                 rooms[rooms_raw[i].pk] =
@@ -498,7 +498,6 @@ function fetch_data()
     {
         $.ajax("/res/attr_dump/")
         .done(function(data) {
-            attributes = [];
             localStorage.setItem("attr", data);
             console.log("Attributes loaded.");
         })
@@ -506,6 +505,7 @@ function fetch_data()
             console.log("Error in fetching attributes.");
         })
         .always(function() {
+            attributes = [];
             attr_raw = JSON.parse(localStorage.getItem("attr"));
             for (i in attr_raw) {
                 var a = attr_raw[i];
@@ -520,7 +520,6 @@ function fetch_data()
     {
         $.ajax("/res/terms_dump/")
         .done(function(data) {
-            terms = [];
             localStorage.setItem("terms", data);
             console.log("Terms loaded.");
         })
@@ -528,6 +527,7 @@ function fetch_data()
             console.log("Error in fetching terms.");
         })
         .always(function() {
+            terms = [];
             terms_raw = JSON.parse(localStorage.getItem("terms"));
             for (var i in terms_raw) {
                 t = terms_raw[i];
